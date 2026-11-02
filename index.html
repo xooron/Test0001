@@ -3,27 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Crazy Time - Telegram Mini App</title>
+  <title>Giftor Crazy - Telegram Mini App</title>
+  <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Google Fonts: Outfit & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg-base: #090d16;
-      --card-glass: rgba(22, 29, 47, 0.72);
-      --card-border: rgba(255, 255, 255, 0.09);
+      --bg-dark: #050a14;
+      --card-bg: #0c1626;
+      --card-border: rgba(43, 90, 158, 0.28);
+      --card-glow: rgba(24, 75, 145, 0.4);
+      --accent-blue: #2f80ed;
       --accent-cyan: #00b4d8;
-      --accent-blue: #0098ea;
-      --accent-gold: #f59e0b;
-      --accent-pink: #ec4899;
-      --accent-purple: #8b5cf6;
+      --accent-gold: #ffb703;
       --accent-green: #10b981;
       --accent-red: #ef4444;
-      --text: #f8fafc;
-      --text-muted: #8e9db7;
-      --nav-height: 74px;
+      --text-white: #ffffff;
+      --text-sub: #7890b2;
+      --nav-height: 64px;
     }
 
     * {
@@ -33,1140 +34,1080 @@
       user-select: none;
       -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent;
-      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      font-family: 'Inter', -apple-system, sans-serif;
     }
 
-    body {
-      background-color: var(--bg-base);
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden; /* Запрет скролла */
+      background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(circle at 85% 0%, rgba(0, 152, 234, 0.25) 0%, transparent 45%),
-        radial-gradient(circle at 10% 30%, rgba(236, 72, 153, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 50% 100%, rgba(139, 92, 246, 0.18) 0%, transparent 50%);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
+        radial-gradient(circle at 50% -10%, #163663 0%, transparent 55%),
+        radial-gradient(circle at 100% 100%, #0d223f 0%, transparent 40%),
+        radial-gradient(circle at 0% 100%, #081324 0%, transparent 45%);
+      color: var(--text-white);
+    }
+
+    #app {
       display: flex;
       flex-direction: column;
-      padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 16px));
-    }
-
-    /* ВЕРХНЯЯ ШАПКА */
-    .app-header {
-      position: sticky;
-      top: 0;
-      z-index: 60;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 18px;
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      background: rgba(9, 13, 22, 0.78);
-      border-bottom: 1px solid var(--card-border);
-    }
-
-    .header-logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .logo-badge {
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #0098ea, #ec4899);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 15px rgba(0, 152, 234, 0.4);
-      font-size: 16px;
-    }
-    .logo-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 17px;
-      font-weight: 900;
-      letter-spacing: 0.5px;
-      background: linear-gradient(90deg, #fff, #94a3b8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    /* БАЛАНС СПРАВА */
-    .balance-pill {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(0, 152, 234, 0.4);
-      box-shadow: 0 0 20px rgba(0, 152, 234, 0.25);
-      border-radius: 30px;
-      padding: 7px 14px;
-    }
-    .balance-pill svg {
-      width: 19px;
-      height: 19px;
-      fill: var(--accent-blue);
-      filter: drop-shadow(0 0 6px var(--accent-blue));
-    }
-    .balance-amount {
-      font-family: 'Outfit', sans-serif;
-      font-size: 16px;
-      font-weight: 800;
-      color: #fff;
-    }
-    .balance-unit {
-      color: var(--accent-blue);
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    /* ВКЛАДКИ */
-    .tab-page {
-      display: none;
       width: 100%;
-      flex-direction: column;
-      align-items: center;
-      animation: tabFadeIn 0.25s ease-out;
-    }
-    .tab-page.active {
-      display: flex;
-    }
-
-    /* === СТРАНИЦА: ИГРА === */
-    .game-arena {
-      width: 100%;
-      max-width: 440px;
-      padding: 10px 14px 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      height: 100%;
+      height: 100dvh;
       position: relative;
     }
 
-    /* Плашка таймера и ожидания */
-    .round-timer-pill {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
-      padding: 6px 16px;
-      border-radius: 20px;
+    /* ========================================================= */
+    /* ВЕРХНИЙ ХЕДЕР (КАК НА СКРИНШОТЕ "GIFTOR RADAR")            */
+    /* ========================================================= */
+    .header-bar {
+      height: 48px;
+      flex-shrink: 0;
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text-muted);
+      justify-content: space-between;
+      padding: 0 16px;
+      margin: 8px 12px 4px 12px;
+      background: rgba(12, 22, 38, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
     }
-    .round-timer-pill .time-sec {
+
+    .brand-title {
       font-family: 'Outfit', sans-serif;
-      font-size: 16px;
-      font-weight: 900;
-      color: var(--accent-gold);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      color: #fff;
     }
-    .live-dot {
-      width: 8px;
-      height: 8px;
+
+    .top-balance-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(47, 128, 237, 0.15);
+      border: 1px solid rgba(47, 128, 237, 0.35);
+      padding: 4px 12px;
+      border-radius: 14px;
+    }
+    .top-balance-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .top-balance-coin {
+      font-size: 11px;
+      font-weight: 700;
+      color: #60a5fa;
+    }
+
+    /* ========================================================= */
+    /* КОНТЕНТНЫЕ ОБЛАСТИ                                       */
+    /* ========================================================= */
+    .tab-content {
+      display: none;
+      flex: 1;
+      width: 100%;
+      min-height: 0; /* Важно для flex-контейнеров */
+      position: relative;
+    }
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* === СТРАНИЦА ИГРЫ (БЕЗ СКРОЛЛА, 100% В ЭКРАН) === */
+    .game-viewport {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 12px 8px 12px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Плашка таймера и Top Slot в одну гармоничную строку/блок */
+    .top-slot-container {
+      width: 100%;
+      height: 44px;
+      flex-shrink: 0;
+      background: linear-gradient(180deg, #11233d 0%, #0c182b 100%);
+      border: 1px solid rgba(47, 128, 237, 0.3);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+      position: relative;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    }
+
+    .timer-tag {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+    .timer-tag b {
+      color: var(--accent-gold);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: var(--accent-gold);
       box-shadow: 0 0 8px var(--accent-gold);
-      animation: dotPulse 1.2s infinite;
     }
-    .live-dot.spinning {
+    .status-dot.spin {
       background: var(--accent-green);
       box-shadow: 0 0 8px var(--accent-green);
     }
 
-    /* TOP SLOT */
-    .top-slot-box {
-      width: 100%;
-      height: 60px;
-      background: linear-gradient(135deg, rgba(20, 27, 43, 0.9), rgba(13, 17, 28, 0.95));
-      border: 1.5px solid rgba(245, 158, 11, 0.4);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(245, 158, 11, 0.12);
-      border-radius: 16px;
-      margin-bottom: 10px;
+    .slot-reels-wrap {
       display: flex;
       align-items: center;
-      justify-content: space-around;
-      padding: 0 10px;
-      position: relative;
-      overflow: hidden;
+      gap: 6px;
+      height: 32px;
     }
-    .top-slot-box::before {
-      content: "TOP SLOT";
-      position: absolute;
-      top: 2px;
-      font-size: 8px;
-      font-weight: 900;
-      letter-spacing: 2px;
-      color: var(--accent-gold);
-      opacity: 0.8;
-    }
-
-    .slot-reel {
-      width: 46%;
-      height: 42px;
-      border-radius: 10px;
-      background: rgba(0, 0, 0, 0.55);
+    .reel-window {
+      width: 90px;
+      height: 30px;
+      background: rgba(4, 9, 18, 0.7);
       border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
       position: relative;
       overflow: hidden;
     }
-    .reel-track {
+    .reel-tape {
       position: absolute;
       width: 100%;
       top: 0;
       left: 0;
       display: flex;
       flex-direction: column;
-      transition: transform 3.6s cubic-bezier(0.12, 0.85, 0.25, 1);
+      transition: transform 3.2s cubic-bezier(0.12, 0.85, 0.25, 1);
     }
     .reel-item {
-      height: 42px;
+      height: 30px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: 'Outfit', sans-serif;
-      font-size: 15px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .reel-item.mult {
-      color: var(--accent-gold);
-      font-size: 19px;
-      text-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
-    }
-    .reel-item.miss {
-      color: #ef4444;
       font-size: 13px;
-      opacity: 0.8;
+      font-weight: 800;
+      text-transform: uppercase;
     }
-    .reel-item.symbol {
-      color: var(--accent-cyan);
-    }
+    .reel-item.mult { color: var(--accent-gold); font-size: 15px; }
+    .reel-item.miss { color: var(--accent-red); font-size: 11px; }
+    .reel-item.sym { color: #38bdf8; font-size: 11px; }
 
-    /* Вылетающий множитель */
-    .flying-badge {
+    /* Полет множителя */
+    .flying-tag {
       position: fixed;
       z-index: 1000;
-      padding: 6px 14px;
-      border-radius: 30px;
+      padding: 4px 10px;
+      border-radius: 20px;
       background: linear-gradient(135deg, #f59e0b, #ef4444);
       color: #fff;
       font-family: 'Outfit', sans-serif;
       font-weight: 900;
-      font-size: 17px;
-      box-shadow: 0 0 25px rgba(245, 158, 11, 0.9);
+      font-size: 14px;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.8);
       pointer-events: none;
       opacity: 0;
-      transform: scale(0.3);
-      transition: all 0.85s cubic-bezier(0.34, 1.4, 0.64, 1);
+      transform: scale(0.4);
+      transition: all 0.8s cubic-bezier(0.34, 1.4, 0.64, 1);
     }
 
-    /* РУЛЕТКА И ЗУМ */
-    .wheel-viewport {
-      width: 320px;
-      height: 320px;
-      position: relative;
-      margin: 4px 0 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      perspective: 1000px;
-    }
-    .wheel-camera {
+    /* ОБЛАСТЬ КОЛЕСА С ЗУМОМ */
+    .wheel-outer-box {
+      flex: 1;
       width: 100%;
-      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      min-height: 0;
+      margin: 2px 0;
+    }
+
+    .wheel-scaler {
+      width: 220px;
+      height: 220px;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      transform-origin: 50% 12%;
-      transition: transform 1.6s cubic-bezier(0.18, 0.85, 0.25, 1);
+      transform-origin: 50% 10%;
+      transition: transform 1.5s cubic-bezier(0.18, 0.85, 0.25, 1);
     }
-    .wheel-camera.zoomed {
-      transform: scale(1.36) translateY(24px);
+    .wheel-scaler.zoomed {
+      transform: scale(1.32) translateY(22px);
     }
 
-    /* СТРЕЛОЧКА (ФЛАППЕР) */
-    .flapper-pin-anchor {
+    /* ЧЕТКАЯ ВЕКТОРНАЯ СТРЕЛОЧКА */
+    .flapper-holder {
       position: absolute;
-      top: -12px;
+      top: -8px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 40;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.9));
+      z-index: 30;
+      width: 22px;
+      height: 32px;
+      pointer-events: none;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.9));
     }
-    .flapper-head {
-      width: 26px;
-      height: 38px;
-      background: linear-gradient(180deg, #ff3366, #99002b);
-      clip-path: polygon(50% 100%, 0 0, 100% 0);
-      border-top: 3px solid #f59e0b;
+    .flapper-svg {
+      width: 100%;
+      height: 100%;
       transform-origin: top center;
       transition: transform 0.05s ease-out;
     }
-    .flapper-head.tick {
-      transform: rotate(24deg);
-    }
 
-    /* CANVAS КОЛЕСА */
-    canvas#wheelCanvas {
-      width: 310px;
-      height: 310px;
+    canvas#rouletteCanvas {
+      width: 220px;
+      height: 220px;
       border-radius: 50%;
-      box-shadow: 0 0 35px rgba(0, 0, 0, 0.9), 0 0 25px rgba(0, 152, 234, 0.2);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.85), 0 0 15px rgba(47, 128, 237, 0.25);
     }
 
-    /* 8 КНОПОК СТАВОК */
+    /* СЕТКА СТАВОК (8 КНОПОК) */
     .bets-grid {
+      width: 100%;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 7px;
-      width: 100%;
-      margin-bottom: 12px;
+      gap: 6px;
+      flex-shrink: 0;
+      margin-bottom: 6px;
     }
 
-    .bet-button {
-      position: relative;
-      height: 64px;
-      border-radius: 14px;
+    .bet-btn {
+      height: 48px;
+      border-radius: 12px;
       border: 1px solid var(--card-border);
-      background: var(--card-glass);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      background: rgba(12, 22, 38, 0.85);
+      backdrop-filter: blur(10px);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      position: relative;
       overflow: hidden;
-      transition: transform 0.1s ease, border-color 0.2s, background-color 0.2s;
+      transition: transform 0.1s, border-color 0.2s;
     }
-    .bet-button:active {
+    .bet-btn:active {
       transform: scale(0.95);
     }
-    .bet-button.has-bet {
-      border-color: rgba(0, 180, 216, 0.8);
-      background: rgba(0, 180, 216, 0.12);
-      box-shadow: 0 0 16px rgba(0, 180, 216, 0.25);
+    .bet-btn.has-chip {
+      border-color: #2f80ed;
+      background: rgba(47, 128, 237, 0.15);
+      box-shadow: 0 0 12px rgba(47, 128, 237, 0.3);
     }
-    .bet-button:disabled {
+    .bet-btn:disabled {
       opacity: 0.65;
       cursor: not-allowed;
       transform: none !important;
     }
 
-    .bet-name {
+    .bet-btn .btn-text {
       font-family: 'Outfit', sans-serif;
-      font-size: 15px;
-      font-weight: 900;
+      font-size: 13px;
+      font-weight: 800;
       color: #fff;
-      line-height: 1.1;
+      line-height: 1;
       text-align: center;
     }
-    .bet-desc {
-      font-size: 9px;
+    .bet-btn .btn-desc {
+      font-size: 8px;
       font-weight: 700;
-      color: var(--text-muted);
+      color: var(--text-sub);
       margin-top: 2px;
       text-transform: uppercase;
     }
 
-    /* Фишка поставленной суммы на кнопке */
-    .chip-placed {
+    .bet-chip {
       position: absolute;
-      bottom: 3px;
-      background: rgba(0, 152, 234, 0.95);
+      bottom: 2px;
+      background: #2f80ed;
       color: #fff;
       font-family: 'Outfit', sans-serif;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 800;
-      padding: 1px 6px;
-      border-radius: 8px;
+      padding: 0 5px;
+      border-radius: 6px;
       display: none;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     }
-    .chip-placed.active {
-      display: block;
-    }
+    .bet-chip.show { display: block; }
 
-    /* Множитель от Top Slot */
-    .topslot-mult-tag {
+    .btn-top-mult {
       position: absolute;
-      top: -2px;
-      right: -2px;
+      top: -1px;
+      right: -1px;
       background: linear-gradient(135deg, #f59e0b, #ef4444);
       color: #000;
       font-family: 'Outfit', sans-serif;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 900;
-      padding: 2px 6px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+      padding: 1px 4px;
+      border-radius: 6px;
       display: none;
-      animation: tagPop 0.3s ease;
     }
-    .topslot-mult-tag.visible {
-      display: block;
-    }
+    .btn-top-mult.show { display: block; }
 
-    /* Цветовые стили кнопок */
-    .bet-button[data-target="1X"] { border-bottom: 3px solid var(--accent-cyan); }
-    .bet-button[data-target="2X"] { border-bottom: 3px solid var(--accent-gold); }
-    .bet-button[data-target="5X"] { border-bottom: 3px solid var(--accent-pink); }
-    .bet-button[data-target="10X"] { border-bottom: 3px solid var(--accent-purple); }
+    /* Цвета кнопок */
+    .bet-btn[data-t="1X"] { border-bottom: 3px solid #00b4d8; }
+    .bet-btn[data-t="2X"] { border-bottom: 3px solid #f59e0b; }
+    .bet-btn[data-t="5X"] { border-bottom: 3px solid #ec4899; }
+    .bet-btn[data-t="10X"] { border-bottom: 3px solid #8b5cf6; }
 
-    .bet-button[data-target="COIN GIFT"] { border-bottom: 3px solid #d97706; }
-    .bet-button[data-target="CASH GIFT"] { border-bottom: 3px solid var(--accent-green); }
-    .bet-button[data-target="PLIN GIFT"] { border-bottom: 3px solid #6366f1; }
-    .bet-button[data-target="CRAZY GIFT"] { border-bottom: 3px solid var(--accent-red); background: rgba(239, 68, 68, 0.08); }
+    .bet-btn[data-t="COIN GIFT"] { border-bottom: 3px solid #d97706; }
+    .bet-btn[data-t="CASH GIFT"] { border-bottom: 3px solid #10b981; }
+    .bet-btn[data-t="PLIN GIFT"] { border-bottom: 3px solid #6366f1; }
+    .bet-btn[data-t="CRAZY GIFT"] { border-bottom: 3px solid #ef4444; background: rgba(239, 68, 68, 0.08); }
 
-    .bet-button[data-target="COIN GIFT"] .bet-name,
-    .bet-button[data-target="CASH GIFT"] .bet-name,
-    .bet-button[data-target="PLIN GIFT"] .bet-name,
-    .bet-button[data-target="CRAZY GIFT"] .bet-name {
-      font-size: 11px;
+    .bet-btn[data-t="COIN GIFT"] .btn-text,
+    .bet-btn[data-t="CASH GIFT"] .btn-text,
+    .bet-btn[data-t="PLIN GIFT"] .btn-text,
+    .bet-btn[data-t="CRAZY GIFT"] .btn-text {
+      font-size: 10px;
     }
 
-    /* ПАНЕЛЬ ВВОДА СУММЫ СТАВКИ */
-    .bet-control-dock {
+    /* ПАНЕЛЬ ВВОДА СТАВКИ */
+    .bet-input-dock {
       width: 100%;
-      background: var(--card-glass);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      height: 44px;
+      flex-shrink: 0;
+      background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 18px;
-      padding: 10px 14px;
+      border-radius: 14px;
+      padding: 0 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
     }
 
-    .bet-input-box {
+    .bet-input-wrap {
       display: flex;
       flex-direction: column;
       flex: 1;
     }
-    .bet-input-label {
-      font-size: 10px;
+    .bet-input-wrap label {
+      font-size: 8px;
       font-weight: 700;
-      color: var(--text-muted);
+      color: var(--text-sub);
       text-transform: uppercase;
+    }
+    .bet-input-wrap input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      width: 100%;
+    }
+
+    .quick-chips-row {
+      display: flex;
+      gap: 4px;
+    }
+    .chip-action {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .chip-action:active { transform: scale(0.93); }
+    .chip-action.clear { color: #f87171; }
+
+    /* ========================================================= */
+    /* СТРАНИЦА: ПРОФИЛЬ (ТОЧНАЯ КОПИЯ ДИЗАЙНА СО СКРИНШОТА)    */
+    /* ========================================================= */
+    .profile-scroll-page {
+      flex: 1;
+      padding: 10px 14px 20px 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Главная карточка баланса (как на скриншоте) */
+    .balance-hero-card {
+      width: 100%;
+      background: linear-gradient(180deg, #17427d 0%, #0d1e37 100%);
+      border: 1px solid rgba(75, 142, 237, 0.35);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 18px 20px;
+      position: relative;
+    }
+
+    .hero-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hero-avatar-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Квадратный аватар с круглыми углами, как в оригинале */
+    .hero-avatar {
+      width: 68px;
+      height: 68px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #3275cd 0%, #1c4b8b 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+    .hero-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .hero-avatar svg {
+      width: 38px;
+      height: 38px;
+      fill: rgba(255, 255, 255, 0.85);
+    }
+    .hero-username {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .hero-balance-block {
+      text-align: right;
+    }
+    .hero-balance-label {
+      font-size: 13px;
+      color: #9bb7dd;
+      font-weight: 500;
       margin-bottom: 2px;
     }
-    .bet-input-number {
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #fff;
+    .hero-balance-amount {
       font-family: 'Outfit', sans-serif;
-      font-size: 18px;
+      font-size: 26px;
       font-weight: 900;
-      width: 100%;
-    }
-
-    .bet-chip-btns {
-      display: flex;
-      gap: 5px;
-    }
-    .chip-btn {
-      background: rgba(255, 255, 255, 0.07);
-      border: 1px solid var(--card-border);
       color: #fff;
-      padding: 7px 9px;
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .chip-btn:active {
-      transform: scale(0.92);
-      background: rgba(255, 255, 255, 0.15);
-    }
-    .chip-btn.clear {
-      color: #ef4444;
+      letter-spacing: -0.5px;
     }
 
-    /* ОКНО РЕЗУЛЬТАТОВ РАУНДА */
-    .round-modal-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 200;
-      background: rgba(0, 0, 0, 0.78);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-    }
-    .round-modal-overlay.active {
+    /* Две кнопки: "Пополнить" (белая) и "Вывести" (темная) */
+    .hero-actions-row {
       display: flex;
+      gap: 12px;
+      margin-top: 4px;
     }
-    .round-modal-card {
-      width: 100%;
-      max-width: 340px;
-      background: linear-gradient(160deg, rgba(27, 36, 56, 0.95), rgba(11, 15, 26, 0.98));
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 24px;
-      box-shadow: 0 20px 45px rgba(0,0,0,0.8), 0 0 35px rgba(0, 152, 234, 0.3);
-      padding: 24px 20px;
-      text-align: center;
-      animation: modalZoom 0.35s cubic-bezier(0.34, 1.45, 0.64, 1);
-    }
-    .modal-round-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 22px;
-      font-weight: 900;
-      color: var(--accent-gold);
-      letter-spacing: 0.5px;
-      margin-bottom: 12px;
-    }
-    .modal-winning-sector {
-      font-size: 22px;
-      font-weight: 900;
-      color: var(--accent-cyan);
-      margin-bottom: 16px;
-    }
-    .modal-info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 9px 12px;
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 12px;
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-    .modal-info-row span:first-child {
-      color: var(--text-muted);
-    }
-    .modal-info-row span:last-child {
-      font-family: 'Outfit', sans-serif;
-      font-weight: 800;
-      font-size: 14px;
-      color: #fff;
-    }
-    .user-win-pill {
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.35);
-    }
-    .user-win-pill span:last-child {
-      color: #10b981;
-      font-size: 17px;
-    }
-    .user-loss-pill {
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.25);
-    }
-    .user-loss-pill span:last-child {
-      color: #f87171;
-    }
-
-    /* === СТРАНИЦА: ИНВЕНТАРЬ === */
-    .inventory-area {
-      width: 100%;
-      max-width: 440px;
-      min-height: calc(80vh - var(--nav-height));
-      padding: 20px 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-    .pepe-watermark {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 320px;
-      height: 320px;
-      opacity: 0.14;
-      pointer-events: none;
-      z-index: 1;
-      filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.5));
-    }
-    .inventory-empty-box {
-      position: relative;
-      z-index: 2;
-      width: 100%;
-      background: var(--card-glass);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--card-border);
-      border-radius: 24px;
-      padding: 34px 20px;
-      text-align: center;
-    }
-    .inventory-empty-icon {
-      font-size: 46px;
-      margin-bottom: 12px;
-      display: inline-block;
-      animation: floatPepe 3s ease-in-out infinite;
-    }
-
-    /* === СТРАНИЦА: ПРОФИЛЬ === */
-    .profile-area {
-      width: 100%;
-      max-width: 440px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .profile-top-card {
-      background: var(--card-glass);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--card-border);
-      border-radius: 24px;
-      padding: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-    }
-    .profile-user-info {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      min-width: 100px;
-    }
-    .tg-avatar-frame {
-      width: 74px;
-      height: 74px;
-      border-radius: 50%;
-      padding: 3px;
-      background: linear-gradient(135deg, var(--accent-blue), var(--accent-pink));
-      box-shadow: 0 0 20px rgba(0, 152, 234, 0.4);
-    }
-    .tg-avatar-img {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-      background: #1a2236;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      font-weight: 800;
-      color: #fff;
-    }
-    .tg-handle {
-      font-family: 'Outfit', sans-serif;
-      font-size: 14px;
-      font-weight: 800;
-      color: #fff;
-      max-width: 125px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .profile-money-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
+    .btn-deposit-white {
       flex: 1;
-    }
-    .action-btn {
-      padding: 12px 16px;
-      border-radius: 14px;
-      font-size: 13px;
-      font-weight: 800;
+      height: 46px;
+      background: #f0f5ff;
+      color: #08111e;
+      border-radius: 16px;
       border: none;
+      font-size: 15px;
+      font-weight: 700;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: transform 0.15s;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+      transition: transform 0.1s;
     }
-    .action-btn:active {
-      transform: scale(0.96);
-    }
-    .action-btn.dep {
-      background: linear-gradient(135deg, #0098ea, #00b4d8);
-      color: #fff;
-      box-shadow: 0 4px 16px rgba(0, 152, 234, 0.35);
-    }
-    .action-btn.wth {
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
-      border: 1px solid var(--card-border);
-    }
+    .btn-deposit-white:active { transform: scale(0.97); }
 
-    .promo-dock {
-      background: var(--card-glass);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+    .btn-withdraw-dark {
+      flex: 1;
+      height: 46px;
+      background: rgba(14, 25, 43, 0.85);
+      color: #fff;
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .btn-withdraw-dark:active { transform: scale(0.97); }
+
+    /* Панель промокода */
+    .promo-box {
+      background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 18px;
-      padding: 12px 14px;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
-    .promo-input-field {
+    .promo-input {
       flex: 1;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0, 0, 0, 0.35);
       border: 1px solid var(--card-border);
       border-radius: 12px;
-      padding: 10px 14px;
+      padding: 9px 12px;
       color: #fff;
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 600;
       outline: none;
       text-transform: uppercase;
     }
-    .promo-submit-btn {
-      background: linear-gradient(135deg, #10b981, #059669);
+    .promo-btn {
+      background: #2f80ed;
       color: #fff;
       border: none;
-      padding: 11px 18px;
       border-radius: 12px;
-      font-size: 13px;
-      font-weight: 800;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
-    }
-    .promo-submit-btn:active {
-      transform: scale(0.95);
     }
 
-    .history-card {
-      background: var(--card-glass);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+    /* СЕКЦИЯ "ИСТОРИЯ" (КАК НА СКРИНШОТЕ) */
+    .history-header-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-top: 4px;
+      margin-bottom: -4px;
+    }
+
+    .history-card-item {
+      background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 16px;
-    }
-    .history-tabs-switch {
-      display: flex;
-      background: rgba(0, 0, 0, 0.35);
-      padding: 4px;
-      border-radius: 14px;
-      margin-bottom: 12px;
-      gap: 6px;
-    }
-    .hist-tab-btn {
-      flex: 1;
-      padding: 8px 10px;
-      border-radius: 10px;
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 12px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-    .hist-tab-btn.active {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-    }
-    .history-feed {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .feed-row {
+      border-radius: 18px;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 12px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 12px;
-      font-size: 13px;
     }
-    .feed-row-val {
-      font-family: 'Outfit', sans-serif;
-      font-weight: 900;
-    }
-    .feed-row-val.pos { color: #10b981; }
-    .feed-row-val.neg { color: #f87171; }
-
-    /* НИЖНЯЯ ПАНЕЛЬ */
-    .bottom-navbar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: var(--nav-height);
-      padding-bottom: env(safe-area-inset-bottom, 12px);
-      background: rgba(9, 13, 22, 0.88);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      border-top: 1px solid var(--card-border);
+    .hist-left {
       display: flex;
-      justify-content: space-around;
       align-items: center;
+      gap: 12px;
+    }
+    .hist-icon-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: rgba(47, 128, 237, 0.15);
+      border: 1px solid rgba(47, 128, 237, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hist-icon-circle svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: #fff;
+      stroke-width: 2.2;
+    }
+    .hist-texts {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .hist-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .hist-date {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+    .hist-amount {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .hist-amount.green { color: #10b981; }
+    .hist-amount.white { color: #f1f5f9; }
+
+    /* ========================================================= */
+    /* СТРАНИЦА: ИНВЕНТАРЬ (С ПРОЗРАЧНЫМ PLUSH PEPE)             */
+    /* ========================================================= */
+    .inventory-page {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 20px;
+    }
+
+    .pepe-ghost-svg {
+      position: absolute;
+      width: 290px;
+      height: 290px;
+      opacity: 0.12;
+      pointer-events: none;
+      filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.4));
+    }
+
+    .inv-empty-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 30px 20px;
+      text-align: center;
+      max-width: 300px;
+      z-index: 2;
+    }
+
+    /* ========================================================= */
+    /* НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (КАПСУЛА КАК НА СКРИНШОТЕ)        */
+    /* ========================================================= */
+    .nav-tab-bar {
+      height: var(--nav-height);
+      flex-shrink: 0;
+      padding: 0 16px;
+      margin: 0 12px 10px 12px;
+      background: rgba(10, 18, 32, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
       z-index: 100;
     }
-    .navbar-btn {
+
+    .nav-item {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 3px;
       background: transparent;
       border: none;
-      color: var(--text-muted);
+      color: var(--text-sub);
       font-size: 11px;
-      font-weight: 800;
+      font-weight: 600;
       cursor: pointer;
-      width: 30%;
-      height: 100%;
+      padding: 6px 16px;
+      border-radius: 16px;
       transition: all 0.2s;
     }
-    .navbar-btn svg {
-      width: 22px;
-      height: 22px;
-      fill: currentColor;
+    .nav-item svg {
+      width: 21px;
+      height: 21px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
     }
-    .navbar-btn.active {
-      color: var(--accent-blue);
+    .nav-item.active {
+      color: #fff;
+      background: rgba(47, 128, 237, 0.2);
+      border: 1px solid rgba(47, 128, 237, 0.35);
     }
-    .navbar-btn.active svg {
-      filter: drop-shadow(0 0 8px var(--accent-blue));
-      transform: translateY(-2px);
+    .nav-item.active svg {
+      stroke: #60a5fa;
+      filter: drop-shadow(0 0 6px #2f80ed);
     }
 
-    /* Анимации */
-    @keyframes dotPulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.35; transform: scale(0.85); }
+    /* МОДАЛКА РЕЗУЛЬТАТОВ */
+    .round-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
-    @keyframes tabFadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+    .round-overlay.show { display: flex; }
+    .round-card {
+      width: 100%;
+      max-width: 320px;
+      background: linear-gradient(160deg, #173258, #0a1424);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 22px 18px;
+      text-align: center;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.8);
     }
-    @keyframes modalZoom {
-      from { opacity: 0; transform: scale(0.8); }
-      to { opacity: 1; transform: scale(1); }
+    .rc-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--accent-gold);
+      margin-bottom: 8px;
     }
-    @keyframes tagPop {
-      0% { transform: scale(0); }
-      80% { transform: scale(1.2); }
-      100% { transform: scale(1); }
+    .rc-sector {
+      font-size: 20px;
+      font-weight: 900;
+      color: #38bdf8;
+      margin-bottom: 14px;
     }
-    @keyframes floatPepe {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-7px); }
+    .rc-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      margin-bottom: 6px;
+      font-size: 13px;
     }
+    .rc-row span:first-child { color: var(--text-sub); }
+    .rc-row span:last-child { font-weight: 800; font-family: 'Outfit', sans-serif; }
+    .rc-row.win span:last-child { color: #10b981; font-size: 15px; }
+    .rc-row.loss span:last-child { color: #f87171; }
   </style>
 </head>
 <body>
 
-  <!-- ВЕРХНЯЯ ШАПКА: БАЛАНС СПРАВА -->
-  <header class="app-header">
-    <div class="header-logo">
-      <div class="logo-badge">⚡</div>
-      <div class="logo-title">CRAZY GRAM</div>
-    </div>
+  <div id="app">
 
-    <!-- Баланс в правом верхнем углу (100.00 GRAM по умолчанию) -->
-    <div class="balance-pill">
-      <svg viewBox="0 0 24 24">
-        <path d="M12 2L3 9l9 13 9-13-9-7zm0 3.2L17.5 9 12 17.2 6.5 9 12 5.2z"/>
-      </svg>
-      <span class="balance-amount" id="balanceDisplay">100.00</span>
-      <span class="balance-unit">GRAM</span>
-    </div>
-  </header>
-
-  <!-- ==================== ВКЛАДКА: ИГРА ==================== -->
-  <main class="tab-page active" id="tab-game">
-    <div class="game-arena">
-
-      <!-- Плашка ожидания -->
-      <div class="round-timer-pill">
-        <div class="live-dot" id="roundLiveDot"></div>
-        <span id="roundTimerLabel">Ожидание:</span>
-        <span class="time-sec" id="roundTimerVal">10с</span>
+    <!-- ВЕРХНИЙ ХЕДЕР -->
+    <header class="header-bar">
+      <div class="brand-title">Giftor Radar</div>
+      <div class="top-balance-pill">
+        <span class="top-balance-val" id="topBalance">100.00</span>
+        <span class="top-balance-coin">GRAM</span>
       </div>
+    </header>
 
-      <!-- TOP SLOT -->
-      <div class="top-slot-box" id="topSlotCard">
-        <div class="slot-reel" id="reelMultiplier">
-          <div class="reel-track" id="reelMultiplierTrack"></div>
-        </div>
-        <div class="slot-reel" id="reelSymbol">
-          <div class="reel-track" id="reelSymbolTrack"></div>
-        </div>
-      </div>
+    <!-- ==================== СТРАНИЦА: ИГРА ==================== -->
+    <div class="tab-content active" id="tab-game">
+      <div class="game-viewport">
 
-      <!-- Летящий мультипликатор из слота -->
-      <div class="flying-badge" id="flyingMultiplierBadge">x10</div>
-
-      <!-- КОЛЕСО РУЛЕТКИ С ФЛАППЕРОМ И ЗУМОМ -->
-      <div class="wheel-viewport">
-        <div class="wheel-camera" id="wheelCameraView">
-          <!-- Стрелочка (Флаппер) -->
-          <div class="flapper-pin-anchor">
-            <div class="flapper-head" id="flapperHead"></div>
+        <!-- Верхний слот + Таймер -->
+        <div class="top-slot-container">
+          <div class="timer-tag">
+            <div class="status-dot" id="phaseDot"></div>
+            <span id="phaseText">Ожидание:</span>
+            <b id="phaseTimer">10с</b>
           </div>
-          <!-- Canvas колеса -->
-          <canvas id="wheelCanvas"></canvas>
-        </div>
-      </div>
 
-      <!-- 8 КНОПОК СТАВОК (СТАВКИ СТАВЯТСЯ КЛИКОМ) -->
-      <div class="bets-grid">
-        <button class="bet-button" data-target="1X" onclick="placeBetOnTarget('1X')">
-          <div class="topslot-mult-tag" id="tag-1X">x0</div>
-          <span class="bet-name">1X</span>
-          <span class="bet-desc">Число</span>
-          <div class="chip-placed" id="chip-1X">0</div>
-        </button>
-
-        <button class="bet-button" data-target="2X" onclick="placeBetOnTarget('2X')">
-          <div class="topslot-mult-tag" id="tag-2X">x0</div>
-          <span class="bet-name">2X</span>
-          <span class="bet-desc">Число</span>
-          <div class="chip-placed" id="chip-2X">0</div>
-        </button>
-
-        <button class="bet-button" data-target="5X" onclick="placeBetOnTarget('5X')">
-          <div class="topslot-mult-tag" id="tag-5X">x0</div>
-          <span class="bet-name">5X</span>
-          <span class="bet-desc">Число</span>
-          <div class="chip-placed" id="chip-5X">0</div>
-        </button>
-
-        <button class="bet-button" data-target="10X" onclick="placeBetOnTarget('10X')">
-          <div class="topslot-mult-tag" id="tag-10X">x0</div>
-          <span class="bet-name">10X</span>
-          <span class="bet-desc">Число</span>
-          <div class="chip-placed" id="chip-10X">0</div>
-        </button>
-
-        <button class="bet-button" data-target="COIN GIFT" onclick="placeBetOnTarget('COIN GIFT')">
-          <div class="topslot-mult-tag" id="tag-COIN GIFT">x0</div>
-          <span class="bet-name">COIN<br>GIFT</span>
-          <span class="bet-desc">Бонус</span>
-          <div class="chip-placed" id="chip-COIN GIFT">0</div>
-        </button>
-
-        <button class="bet-button" data-target="CASH GIFT" onclick="placeBetOnTarget('CASH GIFT')">
-          <div class="topslot-mult-tag" id="tag-CASH GIFT">x0</div>
-          <span class="bet-name">CASH<br>GIFT</span>
-          <span class="bet-desc">Бонус</span>
-          <div class="chip-placed" id="chip-CASH GIFT">0</div>
-        </button>
-
-        <button class="bet-button" data-target="PLIN GIFT" onclick="placeBetOnTarget('PLIN GIFT')">
-          <div class="topslot-mult-tag" id="tag-PLIN GIFT">x0</div>
-          <span class="bet-name">PLIN<br>GIFT</span>
-          <span class="bet-desc">Бонус</span>
-          <div class="chip-placed" id="chip-PLIN GIFT">0</div>
-        </button>
-
-        <button class="bet-button" data-target="CRAZY GIFT" onclick="placeBetOnTarget('CRAZY GIFT')">
-          <div class="topslot-mult-tag" id="tag-CRAZY GIFT">x0</div>
-          <span class="bet-name">CRAZY<br>GIFT</span>
-          <span class="bet-desc">Бонус</span>
-          <div class="chip-placed" id="chip-CRAZY GIFT">0</div>
-        </button>
-      </div>
-
-      <!-- ПАНЕЛЬ ВВОДА СТАВКИ -->
-      <div class="bet-control-dock">
-        <div class="bet-input-box">
-          <span class="bet-input-label">Размер ставки (GRAM):</span>
-          <input type="number" id="inputBetSize" class="bet-input-number" value="1.00" min="0.10" step="0.10" />
-        </div>
-        <div class="bet-chip-btns">
-          <button class="chip-btn" onclick="addToInputBet(0.10)">+0.1</button>
-          <button class="chip-btn" onclick="addToInputBet(1.00)">+1</button>
-          <button class="chip-btn" onclick="addToInputBet(5.00)">+5</button>
-          <button class="chip-btn" onclick="doubleInputBet()">2X</button>
-          <button class="chip-btn clear" onclick="clearAllBets()">Сброс</button>
-        </div>
-      </div>
-
-    </div>
-  </main>
-
-  <!-- ==================== ВКЛАДКА: ИНВЕНТАРЬ ==================== -->
-  <main class="tab-page" id="tab-inventory">
-    <div class="inventory-area">
-      <!-- Прозрачный векторный Plush Pepe на фоне -->
-      <svg class="pepe-watermark" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M70 260C70 170 120 110 250 110C370 110 430 170 430 260C430 350 370 390 250 390C120 390 70 350 70 260Z" fill="#58a846" stroke="#2d6a22" stroke-width="12"/>
-        <circle cx="160" cy="150" r="62" fill="#58a846" stroke="#2d6a22" stroke-width="10"/>
-        <circle cx="340" cy="150" r="62" fill="#58a846" stroke="#2d6a22" stroke-width="10"/>
-        <ellipse cx="160" cy="150" rx="42" ry="34" fill="#ffffff"/>
-        <ellipse cx="340" cy="150" rx="42" ry="34" fill="#ffffff"/>
-        <ellipse cx="165" cy="152" rx="18" ry="24" fill="#1e1e1e"/>
-        <ellipse cx="345" cy="152" rx="18" ry="24" fill="#1e1e1e"/>
-        <path d="M120 130L135 140M190 120L180 135M310 125L325 140" stroke="#24551c" stroke-width="6" stroke-linecap="round"/>
-        <path d="M110 320C150 290 200 300 250 300C300 300 350 290 390 320C360 370 310 370 250 370C190 370 140 370 110 320Z" fill="#a4433b" stroke="#681b15" stroke-width="10"/>
-        <path d="M100 320C180 340 320 340 400 320" stroke="#481512" stroke-width="8" stroke-linecap="round"/>
-      </svg>
-
-      <div class="inventory-empty-box">
-        <div class="inventory-empty-icon">🧸</div>
-        <h3 style="font-size:20px; font-weight:800; margin-bottom:6px;">Инвентарь пуст</h3>
-        <p style="font-size:13px; color:var(--text-muted); line-height:1.5;">
-          Здесь будут храниться ваши призы, Plush Pepe подарки и уникальные Telegram бонусы.
-        </p>
-      </div>
-    </div>
-  </main>
-
-  <!-- ==================== ВКЛАДКА: ПРОФИЛЬ ==================== -->
-  <main class="tab-page" id="tab-profile">
-    <div class="profile-area">
-
-      <!-- Карточка: Аватарка + @username слева, Пополнить/Вывести справа -->
-      <div class="profile-top-card">
-        <div class="profile-user-info">
-          <div class="tg-avatar-frame">
-            <div class="tg-avatar-img" id="userAvatarSlot">TG</div>
+          <div class="slot-reels-wrap" id="topSlotReels">
+            <div class="reel-window">
+              <div class="reel-tape" id="tapeMultiplier"></div>
+            </div>
+            <div class="reel-window">
+              <div class="reel-tape" id="tapeSymbol"></div>
+            </div>
           </div>
-          <div class="tg-handle" id="userHandle">@telegram</div>
         </div>
 
-        <div class="profile-money-actions">
-          <button class="action-btn dep" onclick="openDepositPrompt()">
-            <span>➕</span> Пополнить
+        <!-- Летящий множитель -->
+        <div class="flying-tag" id="flyingTag">x10</div>
+
+        <!-- Колесо рулетки с зумом -->
+        <div class="wheel-outer-box">
+          <div class="wheel-scaler" id="wheelScaler">
+            
+            <!-- Стрелочка (Флаппер) -->
+            <div class="flapper-holder">
+              <svg class="flapper-svg" id="flapperSvg" viewBox="0 0 24 34">
+                <path d="M12 34 L1 4 C1 1.8 2.8 0 5 0 L19 0 C21.2 0 23 1.8 23 4 Z" fill="#ef4444" stroke="#ffd15c" stroke-width="2"/>
+                <circle cx="12" cy="7" r="3.5" fill="#ffffff" />
+              </svg>
+            </div>
+
+            <!-- Canvas колеса -->
+            <canvas id="rouletteCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- 8 кнопок ставок -->
+        <div class="bets-grid">
+          <button class="bet-btn" data-t="1X" onclick="onBetClick('1X')">
+            <div class="btn-top-mult" id="mult-1X">x0</div>
+            <span class="btn-text">1X</span>
+            <span class="btn-desc">Число</span>
+            <div class="bet-chip" id="chip-1X">0</div>
           </button>
-          <button class="action-btn wth" onclick="openWithdrawPrompt()">
-            <span>💳</span> Вывести
+          <button class="bet-btn" data-t="2X" onclick="onBetClick('2X')">
+            <div class="btn-top-mult" id="mult-2X">x0</div>
+            <span class="btn-text">2X</span>
+            <span class="btn-desc">Число</span>
+            <div class="bet-chip" id="chip-2X">0</div>
+          </button>
+          <button class="bet-btn" data-t="5X" onclick="onBetClick('5X')">
+            <div class="btn-top-mult" id="mult-5X">x0</div>
+            <span class="btn-text">5X</span>
+            <span class="btn-desc">Число</span>
+            <div class="bet-chip" id="chip-5X">0</div>
+          </button>
+          <button class="bet-btn" data-t="10X" onclick="onBetClick('10X')">
+            <div class="btn-top-mult" id="mult-10X">x0</div>
+            <span class="btn-text">10X</span>
+            <span class="btn-desc">Число</span>
+            <div class="bet-chip" id="chip-10X">0</div>
+          </button>
+
+          <button class="bet-btn" data-t="COIN GIFT" onclick="onBetClick('COIN GIFT')">
+            <div class="btn-top-mult" id="mult-COIN GIFT">x0</div>
+            <span class="btn-text">COIN<br>GIFT</span>
+            <span class="btn-desc">Бонус</span>
+            <div class="bet-chip" id="chip-COIN GIFT">0</div>
+          </button>
+          <button class="bet-btn" data-t="CASH GIFT" onclick="onBetClick('CASH GIFT')">
+            <div class="btn-top-mult" id="mult-CASH GIFT">x0</div>
+            <span class="btn-text">CASH<br>GIFT</span>
+            <span class="btn-desc">Бонус</span>
+            <div class="bet-chip" id="chip-CASH GIFT">0</div>
+          </button>
+          <button class="bet-btn" data-t="PLIN GIFT" onclick="onBetClick('PLIN GIFT')">
+            <div class="btn-top-mult" id="mult-PLIN GIFT">x0</div>
+            <span class="btn-text">PLIN<br>GIFT</span>
+            <span class="btn-desc">Бонус</span>
+            <div class="bet-chip" id="chip-PLIN GIFT">0</div>
+          </button>
+          <button class="bet-btn" data-t="CRAZY GIFT" onclick="onBetClick('CRAZY GIFT')">
+            <div class="btn-top-mult" id="mult-CRAZY GIFT">x0</div>
+            <span class="btn-text">CRAZY<br>GIFT</span>
+            <span class="btn-desc">Бонус</span>
+            <div class="bet-chip" id="chip-CRAZY GIFT">0</div>
           </button>
         </div>
-      </div>
 
-      <!-- Промокод -->
-      <div class="promo-dock">
-        <input type="text" id="promoCodeInput" class="promo-input-field" placeholder="Промокод (напр. CRAZY)" />
-        <button class="promo-submit-btn" onclick="submitPromoCode()">Активировать</button>
-      </div>
-
-      <!-- История -->
-      <div class="history-card">
-        <div class="history-tabs-switch">
-          <button class="hist-tab-btn active" id="btnTabDep" onclick="setHistoryView('deposit')">История пополнения</button>
-          <button class="hist-tab-btn" id="btnTabWth" onclick="setHistoryView('withdraw')">История вывода</button>
+        <!-- Панель ввода ставки -->
+        <div class="bet-input-dock">
+          <div class="bet-input-wrap">
+            <label>Ставка (GRAM):</label>
+            <input type="number" id="betAmount" value="1.00" min="0.10" step="0.10" />
+          </div>
+          <div class="quick-chips-row">
+            <button class="chip-action" onclick="addBetVal(0.1)">+0.1</button>
+            <button class="chip-action" onclick="addBetVal(1)">+1</button>
+            <button class="chip-action" onclick="addBetVal(5)">+5</button>
+            <button class="chip-action" onclick="doubleBetVal()">2X</button>
+            <button class="chip-action clear" onclick="clearAllBets()">✕</button>
+          </div>
         </div>
-        <div class="history-feed" id="historyFeedContainer"></div>
-      </div>
 
-    </div>
-  </main>
-
-  <!-- МОДАЛЬНОЕ ОКНО РЕЗУЛЬТАТОВ -->
-  <div class="round-modal-overlay" id="roundResultModal">
-    <div class="round-modal-card">
-      <div class="modal-round-title">РАУНД ЗАВЕРШЕН</div>
-      <div class="modal-winning-sector" id="resWinningSectorName">СЕКТОР: 1X</div>
-
-      <div class="modal-info-row">
-        <span>Общий выигрыш:</span>
-        <span id="resTotalWinGram">0.00 GRAM</span>
-      </div>
-
-      <div class="modal-info-row">
-        <span>Победителей:</span>
-        <span id="resWinnersCount">0 чел.</span>
-      </div>
-
-      <div class="modal-info-row" id="resUserRow">
-        <span>Твой результат:</span>
-        <span id="resUserOutcome">Мимо</span>
       </div>
     </div>
+
+    <!-- ==================== СТРАНИЦА: ИНВЕНТАРЬ ==================== -->
+    <div class="tab-content" id="tab-inventory">
+      <div class="inventory-page">
+        <!-- Прозрачный Plush Pepe на фоне -->
+        <svg class="pepe-ghost-svg" viewBox="0 0 500 500" fill="none">
+          <path d="M70 260C70 170 120 110 250 110C370 110 430 170 430 260C430 350 370 390 250 390C120 390 70 350 70 260Z" fill="#58a846" stroke="#2d6a22" stroke-width="12"/>
+          <circle cx="160" cy="150" r="62" fill="#58a846" stroke="#2d6a22" stroke-width="10"/>
+          <circle cx="340" cy="150" r="62" fill="#58a846" stroke="#2d6a22" stroke-width="10"/>
+          <ellipse cx="160" cy="150" rx="42" ry="34" fill="#ffffff"/>
+          <ellipse cx="340" cy="150" rx="42" ry="34" fill="#ffffff"/>
+          <ellipse cx="165" cy="152" rx="18" ry="24" fill="#1e1e1e"/>
+          <ellipse cx="345" cy="152" rx="18" ry="24" fill="#1e1e1e"/>
+          <path d="M120 130L135 140M190 120L180 135M310 125L325 140" stroke="#24551c" stroke-width="6"/>
+          <path d="M110 320C150 290 200 300 250 300C300 300 350 290 390 320C360 370 310 370 250 370C190 370 140 370 110 320Z" fill="#a4433b" stroke="#681b15" stroke-width="10"/>
+        </svg>
+
+        <div class="inv-empty-card">
+          <div style="font-size:42px; margin-bottom:10px;">🧸</div>
+          <h3 style="font-size:18px; font-weight:800; margin-bottom:6px;">Инвентарь пуст</h3>
+          <p style="font-size:13px; color:var(--text-sub); line-height:1.4;">
+            Здесь появятся ваши Plush Pepe, бонусы и выигранные NFT подарки.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== СТРАНИЦА: ПРОФИЛЬ (СТИЛЬ КАК НА СКРИНШОТЕ) ==================== -->
+    <div class="tab-content" id="tab-profile">
+      <div class="profile-scroll-page">
+        
+        <!-- Карточка баланса -->
+        <div class="balance-hero-card">
+          <div class="hero-top-row">
+            <div class="hero-avatar-box">
+              <div class="hero-avatar" id="heroAvatar">
+                <!-- SVG аватар юзера -->
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                </svg>
+              </div>
+              <div class="hero-username" id="heroUsername">@username</div>
+            </div>
+
+            <div class="hero-balance-block">
+              <div class="hero-balance-label">Баланс</div>
+              <div class="hero-balance-amount" id="heroBalance">100.00 GRAM</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Кнопки: Белая "Пополнить" и Темная "Вывести" -->
+        <div class="hero-actions-row">
+          <button class="btn-deposit-white" onclick="actionDeposit()">Пополнить</button>
+          <button class="btn-withdraw-dark" onclick="actionWithdraw()">Вывести</button>
+        </div>
+
+        <!-- Промокод -->
+        <div class="promo-box">
+          <input type="text" id="promoCode" class="promo-input" placeholder="Введите промокод..." />
+          <button class="promo-btn" onclick="applyPromo()">Активировать</button>
+        </div>
+
+        <!-- ИСТОРИЯ (ПО СКРИНШОТУ) -->
+        <div class="history-header-title">История</div>
+
+        <div class="history-card-item">
+          <div class="hist-left">
+            <div class="hist-icon-circle">
+              <!-- Стрелка вниз -->
+              <svg viewBox="0 0 24 24"><path d="M12 4v16m0 0l-6-6m6 6l6-6"/></svg>
+            </div>
+            <div class="hist-texts">
+              <span class="hist-title">Пополнение</span>
+              <span class="hist-date">Сегодня, 18:40</span>
+            </div>
+          </div>
+          <span class="hist-amount green">+50.00</span>
+        </div>
+
+        <div class="history-card-item">
+          <div class="hist-left">
+            <div class="hist-icon-circle">
+              <!-- Стрелка вверх -->
+              <svg viewBox="0 0 24 24"><path d="M12 20V4m0 0l-6 6m6-6l6 6"/></svg>
+            </div>
+            <div class="hist-texts">
+              <span class="hist-title">Вывод</span>
+              <span class="hist-date">Вчера, 21:05</span>
+            </div>
+          </div>
+          <span class="hist-amount white">-12.30</span>
+        </div>
+
+        <div class="history-card-item">
+          <div class="hist-left">
+            <div class="hist-icon-circle">
+              <svg viewBox="0 0 24 24"><path d="M12 4v16m0 0l-6-6m6 6l6-6"/></svg>
+            </div>
+            <div class="hist-texts">
+              <span class="hist-title">Пополнение</span>
+              <span class="hist-date">31 октября</span>
+            </div>
+          </div>
+          <span class="hist-amount green">+25.00</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО РЕЗУЛЬТАТОВ -->
+    <div class="round-overlay" id="roundModal">
+      <div class="round-card">
+        <div class="rc-title">РАУНД ЗАВЕРШЕН</div>
+        <div class="rc-sector" id="resSectorName">1X</div>
+        <div class="rc-row">
+          <span>Общий выигрыш:</span>
+          <span id="resTotalPool">0.00 GRAM</span>
+        </div>
+        <div class="rc-row">
+          <span>Выиграло игроков:</span>
+          <span id="resWinnersNum">0</span>
+        </div>
+        <div class="rc-row" id="resUserRow">
+          <span>Твой результат:</span>
+          <span id="resUserVal">Мимо</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- НИЖНЯЯ НАВИГАЦИЯ (3 ВКЛАДКИ) -->
+    <nav class="nav-tab-bar">
+      <button class="nav-item active" onclick="switchNav('game', this)">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span>Игра</span>
+      </button>
+
+      <button class="nav-item" onclick="switchNav('inventory', this)">
+        <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        <span>Инвентарь</span>
+      </button>
+
+      <button class="nav-item" onclick="switchNav('profile', this)">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Профиль</span>
+      </button>
+    </nav>
+
   </div>
 
-  <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (3 КНОПКИ) -->
-  <nav class="bottom-navbar">
-    <button class="navbar-btn active" onclick="navigateTab('game', this)">
-      <svg viewBox="0 0 24 24">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-      </svg>
-      <span>Игра</span>
-    </button>
-
-    <button class="navbar-btn" onclick="navigateTab('inventory', this)">
-      <svg viewBox="0 0 24 24">
-        <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/>
-      </svg>
-      <span>Инвентарь</span>
-    </button>
-
-    <button class="navbar-btn" onclick="navigateTab('profile', this)">
-      <svg viewBox="0 0 24 24">
-        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-      </svg>
-      <span>Профиль</span>
-    </button>
-  </nav>
-
-  <!-- ЛОГИКА ПРИЛОЖЕНИЯ -->
+  <!-- СКРИПТ: РУЛЕТКА, TOP SLOT, СТАВКИ И ТЕЛЕГРАМ -->
   <script>
     /* ========================================================= */
-    /* 1. БАЛАНС, TELEGRAM АВТОРИЗАЦИЯ И ДАННЫЕ                 */
+    /* 1. БАЛАНС И TELEGRAM АВТОРИЗАЦИЯ                         */
     /* ========================================================= */
-    const tgApp = window.Telegram?.WebApp;
-    if (tgApp) {
-      try {
-        tgApp.ready();
-        tgApp.expand();
-      } catch (e) {}
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      try { tg.ready(); tg.expand(); } catch(e) {}
     }
 
-    let userBalance = 100.00; // Ровно 100 GRAM по умолчанию
-    const placedBets = {
+    let userBalance = 100.00;
+    const betsMap = {
       "1X": 0, "2X": 0, "5X": 0, "10X": 0,
       "COIN GIFT": 0, "CASH GIFT": 0, "PLIN GIFT": 0, "CRAZY GIFT": 0
     };
 
-    function refreshBalance() {
-      document.getElementById("balanceDisplay").textContent = userBalance.toFixed(2);
+    function updateBalanceUI() {
+      const formatted = userBalance.toFixed(2);
+      document.getElementById("topBalance").textContent = formatted;
+      document.getElementById("heroBalance").textContent = `${formatted} GRAM`;
     }
 
-    function initTelegramProfile() {
-      const handleEl = document.getElementById("userHandle");
-      const avatarEl = document.getElementById("userAvatarSlot");
+    function initUser() {
+      const u = tg?.initDataUnsafe?.user;
+      const nameEl = document.getElementById("heroUsername");
+      const avaEl = document.getElementById("heroAvatar");
 
-      const tgUser = tgApp?.initDataUnsafe?.user;
-      if (tgUser) {
-        handleEl.textContent = tgUser.username ? `@${tgUser.username}` : (tgUser.first_name || "Telegram User");
-        if (tgUser.photo_url) {
-          avatarEl.innerHTML = `<img src="${tgUser.photo_url}" class="tg-avatar-img" alt="User Avatar" />`;
-        } else {
-          avatarEl.textContent = (tgUser.first_name || "U").charAt(0).toUpperCase();
+      if (u) {
+        nameEl.textContent = u.username ? `@${u.username}` : (u.first_name || "User");
+        if (u.photo_url) {
+          avaEl.innerHTML = `<img src="${u.photo_url}" alt="Avatar"/>`;
         }
       } else {
-        handleEl.textContent = "@telegram_user";
-        avatarEl.textContent = "TG";
+        nameEl.textContent = "@username";
       }
     }
 
-    function navigateTab(tabName, btnElem) {
-      document.querySelectorAll(".tab-page").forEach(p => p.classList.remove("active"));
-      document.querySelectorAll(".navbar-btn").forEach(b => b.classList.remove("active"));
-
-      document.getElementById(`tab-${tabName}`).classList.add("active");
-      if (btnElem) btnElem.classList.add("active");
-
-      if (tgApp?.HapticFeedback) tgApp.HapticFeedback.impactOccurred("light");
+    function switchNav(tabId, btn) {
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+      document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+      document.getElementById(`tab-${tabId}`).classList.add("active");
+      if (btn) btn.classList.add("active");
+      if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred("light");
     }
 
     /* ========================================================= */
-    /* 2. ШИРОКИЕ И КРАСИВЫЕ СЕКТОРА (32 СЕКТОРА ДЛЯ ЧЕТКОСТИ)  */
+    /* 2. КОЛЕСО И ИДЕАЛЬНАЯ ВЕКТОРНАЯ СТРЕЛОЧКА                */
     /* ========================================================= */
     const WHEEL_SECTORS = [
       { id: "1X", label: "1X", color: "#00b4d8", textColor: "#fff" },
@@ -1203,580 +1144,458 @@
       { id: "10X", label: "10X", color: "#8b5cf6", textColor: "#fff" }
     ];
 
-    const TOTAL_SECTORS = WHEEL_SECTORS.length; // 32 сектора = широкие и разборчивые
-    const ARC_PER_SECTOR = (2 * Math.PI) / TOTAL_SECTORS;
+    const TOTAL_SEGMENTS = WHEEL_SECTORS.length;
+    const SEG_ANGLE = (2 * Math.PI) / TOTAL_SEGMENTS;
 
-    const canvas = document.getElementById("wheelCanvas");
+    const canvas = document.getElementById("rouletteCanvas");
     const ctx = canvas.getContext("2d");
-
-    // Четкий рендеринг под Retina
     const dpr = window.devicePixelRatio || 2;
-    const canvasCssSize = 310;
-    canvas.width = canvasCssSize * dpr;
-    canvas.height = canvasCssSize * dpr;
+    const size = 220;
+
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
     ctx.scale(dpr, dpr);
 
-    let currentRotation = 0;
-    let prevPinPassed = -1;
+    let curAngle = 0;
+    let lastPin = -1;
+    let flapperWobble = 0;
+    const flapperSvg = document.getElementById("flapperSvg");
 
-    function renderWheel(angle) {
-      const cx = canvasCssSize / 2;
-      const cy = canvasCssSize / 2;
-      const radius = cx - 8;
+    function drawWheel(angle) {
+      const cx = size / 2;
+      const cy = size / 2;
+      const radius = cx - 6;
 
-      ctx.clearRect(0, 0, canvasCssSize, canvasCssSize);
+      ctx.clearRect(0, 0, size, size);
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(angle);
 
-      // Отрисовка широких секторов
-      for (let i = 0; i < TOTAL_SECTORS; i++) {
-        const startRad = i * ARC_PER_SECTOR;
+      // Сектора
+      for (let i = 0; i < TOTAL_SEGMENTS; i++) {
+        const a1 = i * SEG_ANGLE;
         const item = WHEEL_SECTORS[i];
 
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.arc(0, 0, radius, startRad, startRad + ARC_PER_SECTOR);
+        ctx.arc(0, 0, radius, a1, a1 + SEG_ANGLE);
         ctx.closePath();
-
         ctx.fillStyle = item.color;
         ctx.fill();
 
-        // Граница секторов
-        ctx.strokeStyle = "rgba(0, 0, 0, 0.35)";
-        ctx.lineWidth = 1.8;
+        ctx.strokeStyle = "rgba(0,0,0,0.3)";
+        ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // Четкий текст
+        // Текст сектора
         ctx.save();
-        ctx.rotate(startRad + ARC_PER_SECTOR / 2);
+        ctx.rotate(a1 + SEG_ANGLE / 2);
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
         ctx.fillStyle = item.textColor;
-        ctx.font = "900 16px 'Outfit', sans-serif";
-        ctx.fillText(item.label, radius - 26, 0);
+        ctx.font = "900 12px 'Outfit', sans-serif";
+        ctx.fillText(item.label, radius - 18, 0);
         ctx.restore();
       }
 
-      // Золотой внешний обод
+      // Золотой обод
       ctx.beginPath();
       ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-      ctx.lineWidth = 10;
+      ctx.lineWidth = 7;
       ctx.strokeStyle = "#ffd15c";
       ctx.stroke();
 
-      // Металлические штифты
-      for (let i = 0; i < TOTAL_SECTORS; i++) {
-        const pinRad = i * ARC_PER_SECTOR;
-        const px = Math.cos(pinRad) * (radius - 1);
-        const py = Math.sin(pinRad) * (radius - 1);
+      // Штифты (Pins)
+      for (let i = 0; i < TOTAL_SEGMENTS; i++) {
+        const pa = i * SEG_ANGLE;
+        const px = Math.cos(pa) * (radius - 1);
+        const py = Math.sin(pa) * (radius - 1);
 
         ctx.beginPath();
-        ctx.arc(px, py, 4.5, 0, 2 * Math.PI);
+        ctx.arc(px, py, 3.2, 0, 2 * Math.PI);
         ctx.fillStyle = "#ffffff";
         ctx.fill();
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1.5;
         ctx.strokeStyle = "#b45309";
         ctx.stroke();
       }
 
-      // Центральная стеклянная шайба
+      // Центр колеса
       ctx.beginPath();
-      ctx.arc(0, 0, 42, 0, 2 * Math.PI);
-      ctx.fillStyle = "#090d16";
+      ctx.arc(0, 0, 32, 0, 2 * Math.PI);
+      ctx.fillStyle = "#0c1626";
       ctx.fill();
-      ctx.lineWidth = 5;
+      ctx.lineWidth = 4;
       ctx.strokeStyle = "#ffd15c";
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(0, 0, 18, 0, 2 * Math.PI);
-      ctx.fillStyle = "#0098ea";
+      ctx.arc(0, 0, 14, 0, 2 * Math.PI);
+      ctx.fillStyle = "#2f80ed";
       ctx.fill();
 
       ctx.restore();
     }
 
-    /* Флаппер: проверка штифтов при вращении */
-    const flapperHead = document.getElementById("flapperHead");
-    let flapperTimer = null;
-
-    function monitorFlapper(angle) {
+    // Физический тик стрелки
+    function checkPinHit(angle) {
       const normalized = (angle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-      const pointerWheelAngle = ((3 * Math.PI / 2) - normalized + 4 * Math.PI) % (2 * Math.PI);
-      const curPin = Math.floor(pointerWheelAngle / ARC_PER_SECTOR);
+      const topPointerRad = ((3 * Math.PI / 2) - normalized + 4 * Math.PI) % (2 * Math.PI);
+      const pinIndex = Math.floor(topPointerRad / SEG_ANGLE);
 
-      if (curPin !== prevPinPassed) {
-        prevPinPassed = curPin;
-        flapperHead.classList.add("tick");
-        if (flapperTimer) clearTimeout(flapperTimer);
-        flapperTimer = setTimeout(() => {
-          flapperHead.classList.remove("tick");
-        }, 50);
-
-        if (tgApp?.HapticFeedback) tgApp.HapticFeedback.impactOccurred("light");
+      if (pinIndex !== lastPin) {
+        lastPin = pinIndex;
+        flapperWobble = 22; // отклонение на 22 градуса
+        if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred("light");
       }
+
+      // Плавное возвращение флаппера в исходное состояние
+      flapperWobble *= 0.82;
+      flapperSvg.style.transform = `rotate(${flapperWobble}deg)`;
     }
 
-    renderWheel(0);
+    drawWheel(0);
 
     /* ========================================================= */
-    /* 3. TOP SLOT БАРАБАНЫ                                     */
+    /* 3. СТАВКИ                                                 */
     /* ========================================================= */
-    const SLOT_MULTIPLIERS = [2, 3, 5, 7, 10, 15, 20, 25, 50];
-    const SLOT_TARGETS = ["1X", "2X", "5X", "10X", "COIN GIFT", "CASH GIFT", "PLIN GIFT", "CRAZY GIFT"];
+    let isLocked = false;
 
-    const trackMultiplier = document.getElementById("reelMultiplierTrack");
-    const trackSymbol = document.getElementById("reelSymbolTrack");
+    function onBetClick(targetId) {
+      if (isLocked) return;
 
-    function buildTopSlotReels() {
+      const inputVal = parseFloat(document.getElementById("betAmount").value) || 0;
+      if (inputVal < 0.10) {
+        alert("Минимальная ставка 0.10 GRAM");
+        return;
+      }
+      if (userBalance < inputVal) {
+        alert("Недостаточно баланса!");
+        return;
+      }
+
+      userBalance -= inputVal;
+      betsMap[targetId] += inputVal;
+      updateBalanceUI();
+
+      const btn = document.querySelector(`.bet-btn[data-t="${targetId}"]`);
+      const chip = document.getElementById(`chip-${targetId}`);
+      if (btn && chip) {
+        btn.classList.add("has-chip");
+        chip.classList.add("show");
+        chip.textContent = betsMap[targetId].toFixed(1);
+      }
+      if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred("medium");
+    }
+
+    function addBetVal(v) {
+      const inp = document.getElementById("betAmount");
+      let c = parseFloat(inp.value) || 0;
+      inp.value = (c + v).toFixed(2);
+    }
+    function doubleBetVal() {
+      const inp = document.getElementById("betAmount");
+      let c = parseFloat(inp.value) || 0.10;
+      inp.value = (c * 2).toFixed(2);
+    }
+    function clearAllBets() {
+      if (isLocked) return;
+      for (let k in betsMap) {
+        userBalance += betsMap[k];
+        betsMap[k] = 0;
+        const btn = document.querySelector(`.bet-btn[data-t="${k}"]`);
+        const chip = document.getElementById(`chip-${k}`);
+        if (btn) btn.classList.remove("has-chip");
+        if (chip) chip.classList.remove("show");
+      }
+      updateBalanceUI();
+    }
+
+    /* ========================================================= */
+    /* 4. TOP SLOT                                               */
+    /* ========================================================= */
+    const MULTS = [2, 3, 5, 7, 10, 15, 20, 25, 50];
+    const TARGETS = ["1X", "2X", "5X", "10X", "COIN GIFT", "CASH GIFT", "PLIN GIFT", "CRAZY GIFT"];
+
+    const tapeMultiplier = document.getElementById("tapeMultiplier");
+    const tapeSymbol = document.getElementById("tapeSymbol");
+
+    function initTopSlot() {
       let mHtml = "";
       for (let i = 0; i < 22; i++) {
         if (i % 3 === 0) {
           mHtml += `<div class="reel-item miss">МИМО</div>`;
         } else {
-          const m = SLOT_MULTIPLIERS[Math.floor(Math.random() * SLOT_MULTIPLIERS.length)];
-          mHtml += `<div class="reel-item mult">x${m}</div>`;
+          mHtml += `<div class="reel-item mult">x${MULTS[Math.floor(Math.random() * MULTS.length)]}</div>`;
         }
       }
-      trackMultiplier.innerHTML = mHtml;
+      tapeMultiplier.innerHTML = mHtml;
 
       let sHtml = "";
       for (let i = 0; i < 22; i++) {
-        const s = SLOT_TARGETS[Math.floor(Math.random() * SLOT_TARGETS.length)];
-        sHtml += `<div class="reel-item symbol">${s}</div>`;
+        sHtml += `<div class="reel-item sym">${TARGETS[Math.floor(Math.random() * TARGETS.length)]}</div>`;
       }
-      trackSymbol.innerHTML = sHtml;
+      tapeSymbol.innerHTML = sHtml;
     }
-    buildTopSlotReels();
+    initTopSlot();
 
     /* ========================================================= */
-    /* 4. СТАВКИ: НАДЕЖНЫЙ МЕХАНИЗМ КЛИКА ПО КНОПКАМ            */
+    /* 5. ИГРОВОЙ ЦИКЛ: ТАЙМЕР -> КРУЧЕНИЕ -> ЗУМ -> ИТОГ        */
     /* ========================================================= */
-    let isRoundLocked = false;
+    let timerSec = 10;
+    let timerInterval = null;
+    let roundBonus = { hit: false, mult: 1, target: null };
 
-    function placeBetOnTarget(targetId) {
-      if (isRoundLocked) return;
+    function runRoundCycle() {
+      isLocked = false;
+      document.querySelectorAll(".bet-btn").forEach(b => b.disabled = false);
+      timerSec = 10;
 
-      const inputBet = parseFloat(document.getElementById("inputBetSize").value) || 0;
-      if (inputBet < 0.10) {
-        alert("Минимальная ставка 0.10 GRAM");
-        return;
-      }
-      if (userBalance < inputBet) {
-        alert("Недостаточно GRAM на балансе!");
-        if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred("error");
-        return;
-      }
+      // Сброс зума и статуса
+      document.getElementById("wheelScaler").classList.remove("zoomed");
+      document.getElementById("phaseDot").className = "status-dot";
+      document.getElementById("phaseText").textContent = "Ожидание:";
+      document.getElementById("phaseTimer").textContent = timerSec + "с";
 
-      // Списываем сразу и фиксируем
-      userBalance -= inputBet;
-      placedBets[targetId] += inputBet;
-      refreshBalance();
+      document.querySelectorAll(".btn-top-mult").forEach(t => t.classList.remove("show"));
 
-      // Обновляем отображение фишки на кнопке
-      const btn = document.querySelector(`.bet-button[data-target="${targetId}"]`);
-      const chip = document.getElementById(`chip-${targetId}`);
-      if (btn && chip) {
-        btn.classList.add("has-bet");
-        chip.classList.add("active");
-        chip.textContent = placedBets[targetId].toFixed(1);
-      }
+      tapeMultiplier.style.transition = "none";
+      tapeSymbol.style.transition = "none";
+      tapeMultiplier.style.transform = "translateY(0px)";
+      tapeSymbol.style.transform = "translateY(0px)";
 
-      if (tgApp?.HapticFeedback) tgApp.HapticFeedback.impactOccurred("medium");
-    }
-
-    function addToInputBet(amt) {
-      const inp = document.getElementById("inputBetSize");
-      let cur = parseFloat(inp.value) || 0;
-      inp.value = (cur + amt).toFixed(2);
-    }
-    function doubleInputBet() {
-      const inp = document.getElementById("inputBetSize");
-      let cur = parseFloat(inp.value) || 0.10;
-      inp.value = (cur * 2).toFixed(2);
-    }
-    function clearAllBets() {
-      if (isRoundLocked) return;
-      // Возвращаем все неразыгранные фишки обратно на баланс
-      for (let key in placedBets) {
-        userBalance += placedBets[key];
-        placedBets[key] = 0;
-        const btn = document.querySelector(`.bet-button[data-target="${key}"]`);
-        const chip = document.getElementById(`chip-${key}`);
-        if (btn) btn.classList.remove("has-bet");
-        if (chip) {
-          chip.classList.remove("active");
-          chip.textContent = "0";
-        }
-      }
-      refreshBalance();
-    }
-
-    function setBetButtonsLock(locked) {
-      isRoundLocked = locked;
-      document.querySelectorAll(".bet-button").forEach(b => b.disabled = locked);
-    }
-
-    /* ========================================================= */
-    /* 5. ИГРОВОЙ ЦИКЛ CRAZY TIME (ТАЙМЕР, СЛОТ, ВРАЩЕНИЕ, ЗУМ) */
-    /* ========================================================= */
-    let roundTimerSeconds = 10;
-    let roundTimerHandle = null;
-
-    let activeRoundBonus = {
-      isHit: false,
-      multiplier: 1,
-      target: null
-    };
-
-    function startWaitingLoop() {
-      setBetButtonsLock(false);
-      roundTimerSeconds = 10;
-
-      // Сброс приближения колеса
-      document.getElementById("wheelCameraView").classList.remove("zoomed");
-      document.getElementById("roundLiveDot").className = "live-dot";
-      document.getElementById("roundTimerLabel").textContent = "Ожидание:";
-      document.getElementById("roundTimerVal").textContent = roundTimerSeconds + "с";
-
-      // Сброс бейджей Top Slot на кнопках
-      document.querySelectorAll(".topslot-mult-tag").forEach(t => {
-        t.classList.remove("visible");
-        t.textContent = "x0";
-      });
-
-      // Сброс барабанов слота
-      trackMultiplier.style.transition = "none";
-      trackSymbol.style.transition = "none";
-      trackMultiplier.style.transform = "translateY(0px)";
-      trackSymbol.style.transform = "translateY(0px)";
-
-      clearInterval(roundTimerHandle);
-      roundTimerHandle = setInterval(() => {
-        roundTimerSeconds--;
-        if (roundTimerSeconds > 0) {
-          document.getElementById("roundTimerVal").textContent = roundTimerSeconds + "с";
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timerSec--;
+        if (timerSec > 0) {
+          document.getElementById("phaseTimer").textContent = timerSec + "с";
         } else {
-          clearInterval(roundTimerHandle);
-          startSpinProcess();
+          clearInterval(timerInterval);
+          startRoundSpin();
         }
       }, 1000);
     }
 
-    function startSpinProcess() {
-      setBetButtonsLock(true); // Блокируем кнопки ставок
-      document.getElementById("roundLiveDot").className = "live-dot spinning";
-      document.getElementById("roundTimerLabel").textContent = "Колесо:";
-      document.getElementById("roundTimerVal").textContent = "Крутится";
+    function startRoundSpin() {
+      isLocked = true;
+      document.querySelectorAll(".bet-btn").forEach(b => b.disabled = true);
+      document.getElementById("phaseDot").className = "status-dot spin";
+      document.getElementById("phaseText").textContent = "Колесо:";
+      document.getElementById("phaseTimer").textContent = "Крутится";
 
-      // 1. Выбираем сектор выпадения
-      const winningIndex = Math.floor(Math.random() * TOTAL_SECTORS);
-      const winningItem = WHEEL_SECTORS[winningIndex];
+      const winIndex = Math.floor(Math.random() * TOTAL_SEGMENTS);
+      const winSector = WHEEL_SECTORS[winIndex];
 
-      // 2. Рассчитываем Top Slot (70% выпадения)
-      const isTopHit = Math.random() < 0.70;
-      let slotMultiplier = 2;
-      let slotTarget = null;
+      // Top Slot шанс 70%
+      const isHit = Math.random() < 0.70;
+      const multVal = MULTS[Math.floor(Math.random() * MULTS.length)];
+      const targetVal = (Math.random() < 0.45) ? winSector.id : TARGETS[Math.floor(Math.random() * TARGETS.length)];
 
-      if (isTopHit) {
-        slotMultiplier = SLOT_MULTIPLIERS[Math.floor(Math.random() * SLOT_MULTIPLIERS.length)];
-        slotTarget = (Math.random() < 0.45) ? winningItem.id : SLOT_TARGETS[Math.floor(Math.random() * SLOT_TARGETS.length)];
-      }
+      roundBonus = { hit: isHit, mult: multVal, target: targetVal };
 
-      activeRoundBonus = {
-        isHit: isTopHit,
-        multiplier: slotMultiplier,
-        target: slotTarget
-      };
-
-      // 3. Запуск барабанов Top Slot
+      // Запуск слота
       setTimeout(() => {
-        const itemH = 42;
-        trackMultiplier.style.transition = "transform 3.4s cubic-bezier(0.12, 0.85, 0.25, 1)";
-        trackSymbol.style.transition = "transform 3.4s cubic-bezier(0.12, 0.85, 0.25, 1)";
+        const h = 30;
+        tapeMultiplier.style.transition = "transform 3.2s cubic-bezier(0.12, 0.85, 0.25, 1)";
+        tapeSymbol.style.transition = "transform 3.2s cubic-bezier(0.12, 0.85, 0.25, 1)";
 
-        if (isTopHit) {
-          trackMultiplier.children[14].className = "reel-item mult";
-          trackMultiplier.children[14].textContent = `x${slotMultiplier}`;
-          trackMultiplier.style.transform = `translateY(-${14 * itemH}px)`;
+        if (isHit) {
+          tapeMultiplier.children[14].className = "reel-item mult";
+          tapeMultiplier.children[14].textContent = `x${multVal}`;
+          tapeMultiplier.style.transform = `translateY(-${14 * h}px)`;
 
-          trackSymbol.children[14].className = "reel-item symbol";
-          trackSymbol.children[14].textContent = slotTarget;
-          trackSymbol.style.transform = `translateY(-${14 * itemH}px)`;
+          tapeSymbol.children[14].className = "reel-item sym";
+          tapeSymbol.children[14].textContent = targetVal;
+          tapeSymbol.style.transform = `translateY(-${14 * h}px)`;
         } else {
-          trackMultiplier.children[14].className = "reel-item miss";
-          trackMultiplier.children[14].textContent = "МИМО";
-          trackMultiplier.style.transform = `translateY(-${14 * itemH - 12}px)`; // застревание между строк
+          tapeMultiplier.children[14].className = "reel-item miss";
+          tapeMultiplier.children[14].textContent = "МИМО";
+          tapeMultiplier.style.transform = `translateY(-${14 * h - 8}px)`; // застряло на линии
 
-          trackSymbol.children[14].textContent = SLOT_TARGETS[0];
-          trackSymbol.style.transform = `translateY(-${14 * itemH}px)`;
+          tapeSymbol.children[14].textContent = TARGETS[0];
+          tapeSymbol.style.transform = `translateY(-${14 * h}px)`;
         }
       }, 400);
 
-      // 4. Полет множителя на кнопку ставки
+      // Вылет множителя на кнопку
       setTimeout(() => {
-        if (activeRoundBonus.isHit) {
-          flyMultiplierToButton(activeRoundBonus.multiplier, activeRoundBonus.target);
+        if (roundBonus.hit) {
+          flyMultiplier(roundBonus.mult, roundBonus.target);
         }
-      }, 3800);
+      }, 3600);
 
-      // 5. Физика колеса
-      spinWheelWithZoom(winningIndex, winningItem);
+      // Вращение колеса
+      executeWheelSpin(winIndex, winSector);
     }
 
-    function flyMultiplierToButton(mult, targetName) {
-      const badge = document.getElementById("flyingMultiplierBadge");
-      const slotBox = document.getElementById("topSlotCard").getBoundingClientRect();
-      const targetBtn = document.querySelector(`.bet-button[data-target="${targetName}"]`);
-      if (!targetBtn) return;
+    function flyMultiplier(mult, targetId) {
+      const tag = document.getElementById("flyingTag");
+      const btn = document.querySelector(`.bet-btn[data-t="${targetId}"]`);
+      if (!btn) return;
 
-      const btnRect = targetBtn.getBoundingClientRect();
+      const slotBox = document.getElementById("topSlotReels").getBoundingClientRect();
+      const btnBox = btn.getBoundingClientRect();
 
-      badge.textContent = `x${mult}`;
-      badge.style.opacity = "1";
-      badge.style.top = `${slotBox.top + 8}px`;
-      badge.style.left = `${slotBox.left + slotBox.width / 2 - 20}px`;
-      badge.style.transform = "scale(1.3)";
+      tag.textContent = `x${mult}`;
+      tag.style.opacity = "1";
+      tag.style.top = `${slotBox.top + 2}px`;
+      tag.style.left = `${slotBox.left + 20}px`;
+      tag.style.transform = "scale(1.2)";
 
       setTimeout(() => {
-        badge.style.top = `${btnRect.top + 4}px`;
-        badge.style.left = `${btnRect.left + btnRect.width / 2 - 20}px`;
-        badge.style.transform = "scale(0.85)";
+        tag.style.top = `${btnBox.top + 4}px`;
+        tag.style.left = `${btnBox.left + btnBox.width / 2 - 16}px`;
+        tag.style.transform = "scale(0.8)";
       }, 50);
 
       setTimeout(() => {
-        badge.style.opacity = "0";
-        const tag = document.getElementById(`tag-${targetName}`);
-        if (tag) {
-          tag.textContent = `x${mult}`;
-          tag.classList.add("visible");
+        tag.style.opacity = "0";
+        const targetBadge = document.getElementById(`mult-${targetId}`);
+        if (targetBadge) {
+          targetBadge.textContent = `x${mult}`;
+          targetBadge.classList.add("show");
         }
-      }, 900);
+      }, 850);
     }
 
-    function spinWheelWithZoom(targetIndex, winningItem) {
+    function executeWheelSpin(targetIndex, winSector) {
       const startTime = performance.now();
-      const spinDuration = 10000; // 10 секунд вращения
+      const spinTime = 9500;
 
-      const startAngle = currentRotation;
-      const targetCenter = targetIndex * ARC_PER_SECTOR + (ARC_PER_SECTOR / 2);
-      const targetStopMod = (3 * Math.PI / 2 - targetCenter) % (2 * Math.PI);
-      const extraSpins = 9 * (2 * Math.PI);
-      const totalDestAngle = startAngle + extraSpins + ((targetStopMod - (startAngle % (2 * Math.PI)) + 4 * Math.PI) % (2 * Math.PI));
+      const startAngle = curAngle;
+      const targetCenter = targetIndex * SEG_ANGLE + (SEG_ANGLE / 2);
+      const targetOffset = (3 * Math.PI / 2 - targetCenter) % (2 * Math.PI);
+      const fullRotations = 8 * (2 * Math.PI);
+      const targetTotalAngle = startAngle + fullRotations + ((targetOffset - (startAngle % (2 * Math.PI)) + 4 * Math.PI) % (2 * Math.PI));
 
-      let hasZoomed = false;
+      let isZoomActivated = false;
 
-      function renderFrame(now) {
+      function step(now) {
         const elapsed = now - startTime;
-        const progress = Math.min(1, elapsed / spinDuration);
+        const progress = Math.min(1, elapsed / spinTime);
 
-        // Плавное физическое торможение
+        // Плавное торможение
         const ease = 1 - Math.pow(1 - progress, 3.4);
-        currentRotation = startAngle + (totalDestAngle - startAngle) * ease;
+        curAngle = startAngle + (targetTotalAngle - startAngle) * ease;
 
-        renderWheel(currentRotation);
-        monitorFlapper(currentRotation);
+        drawWheel(curAngle);
+        checkPinHit(curAngle);
 
-        // Приближаем экран (зум) за 3 секунды до остановки
-        if (elapsed > spinDuration - 3400 && !hasZoomed) {
-          hasZoomed = true;
-          document.getElementById("wheelCameraView").classList.add("zoomed");
+        // Зум камеры в конце
+        if (elapsed > spinTime - 3200 && !isZoomActivated) {
+          isZoomActivated = true;
+          document.getElementById("wheelScaler").classList.add("zoomed");
         }
 
         if (progress < 1) {
-          requestAnimationFrame(renderFrame);
+          requestAnimationFrame(step);
         } else {
-          finishRound(winningItem);
+          settleRound(winSector);
         }
       }
 
-      requestAnimationFrame(renderFrame);
+      requestAnimationFrame(step);
     }
 
-    /* ========================================================= */
-    /* 6. ПОДВЕДЕНИЕ ИТОГОВ И ВЫПЛАТЫ                            */
-    /* ========================================================= */
-    function finishRound(winningItem) {
-      if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred("success");
+    function settleRound(winSector) {
+      const userBet = betsMap[winSector.id] || 0;
+      let multiplier = 1;
 
-      const betOnWinner = placedBets[winningItem.id] || 0;
-      let totalMultiplier = 1;
+      if (winSector.id === "1X") multiplier = 1;
+      else if (winSector.id === "2X") multiplier = 2;
+      else if (winSector.id === "5X") multiplier = 5;
+      else if (winSector.id === "10X") multiplier = 10;
+      else multiplier = 25;
 
-      if (winningItem.id === "1X") totalMultiplier = 1;
-      else if (winningItem.id === "2X") totalMultiplier = 2;
-      else if (winningItem.id === "5X") totalMultiplier = 5;
-      else if (winningItem.id === "10X") totalMultiplier = 10;
-      else totalMultiplier = 25; // Бонуски дают 25x базу
-
-      // Применяем множитель Top Slot, если совпал сектор
-      if (activeRoundBonus.isHit && activeRoundBonus.target === winningItem.id) {
-        totalMultiplier *= activeRoundBonus.multiplier;
+      if (roundBonus.hit && roundBonus.target === winSector.id) {
+        multiplier *= roundBonus.mult;
       }
 
-      let userWonGram = 0;
-      if (betOnWinner > 0) {
-        userWonGram = betOnWinner * (totalMultiplier + 1);
-        userBalance += userWonGram;
-        refreshBalance();
+      let wonAmount = 0;
+      if (userBet > 0) {
+        wonAmount = userBet * (multiplier + 1);
+        userBalance += wonAmount;
+        updateBalanceUI();
       }
 
-      // Показ результатов в окне
-      displayOutcomeModal(winningItem.id, userWonGram, betOnWinner > 0);
+      // Показ результатов
+      const modal = document.getElementById("roundModal");
+      document.getElementById("resSectorName").textContent = winSector.id;
+      const randW = Math.floor(Math.random() * 40) + 6;
+      document.getElementById("resWinnersNum").textContent = randW;
+      document.getElementById("resTotalPool").textContent = `${(randW * 14.5).toFixed(2)} GRAM`;
 
-      // Сброс фишек ставок на кнопках перед новым раундом
-      for (let k in placedBets) {
-        placedBets[k] = 0;
-        const btn = document.querySelector(`.bet-button[data-target="${k}"]`);
-        const chip = document.getElementById(`chip-${k}`);
-        if (btn) btn.classList.remove("has-bet");
-        if (chip) {
-          chip.classList.remove("active");
-          chip.textContent = "0";
-        }
-      }
-    }
-
-    function displayOutcomeModal(sectorId, wonGram, isWin) {
-      const modal = document.getElementById("roundResultModal");
-      const secName = document.getElementById("resWinningSectorName");
-      const totalPool = document.getElementById("resTotalWinGram");
-      const winners = document.getElementById("resWinnersCount");
       const userRow = document.getElementById("resUserRow");
-      const userOutcome = document.getElementById("resUserOutcome");
+      const userVal = document.getElementById("resUserVal");
 
-      secName.textContent = `СЕКТОР: ${sectorId}`;
-      const randWinners = Math.floor(Math.random() * 38) + 7;
-      winners.textContent = `${randWinners} чел.`;
-      totalPool.textContent = `${(randWinners * (Math.random() * 12 + 4)).toFixed(2)} GRAM`;
-
-      if (isWin && wonGram > 0) {
-        userRow.className = "modal-info-row user-win-pill";
-        userRow.querySelector("span:first-child").textContent = "Твой выигрыш:";
-        userOutcome.textContent = `+${wonGram.toFixed(2)} GRAM`;
+      if (userBet > 0 && wonAmount > 0) {
+        userRow.className = "rc-row win";
+        userVal.textContent = `+${wonAmount.toFixed(2)} GRAM`;
       } else {
-        userRow.className = "modal-info-row user-loss-pill";
-        userRow.querySelector("span:first-child").textContent = "Ставка:";
-        userOutcome.textContent = "Мимо (0.00 GRAM)";
+        userRow.className = "rc-row loss";
+        userVal.textContent = "Мимо (0.00 GRAM)";
       }
 
-      modal.classList.add("active");
+      modal.classList.add("show");
+
+      // Очистка ставок
+      for (let k in betsMap) {
+        betsMap[k] = 0;
+        const btn = document.querySelector(`.bet-btn[data-t="${k}"]`);
+        const chip = document.getElementById(`chip-${k}`);
+        if (btn) btn.classList.remove("has-chip");
+        if (chip) chip.classList.remove("show");
+      }
 
       setTimeout(() => {
-        modal.classList.remove("active");
-        startWaitingLoop();
+        modal.classList.remove("show");
+        runRoundCycle();
       }, 4200);
     }
 
     /* ========================================================= */
-    /* 7. ПРОФИЛЬ, ПРОМОКОД И ИСТОРИЯ ОПЕРАЦИЙ                  */
+    /* 6. ДЕЙСТВИЯ ПРОФИЛЯ                                       */
     /* ========================================================= */
-    let currentHistoryType = "deposit";
-    const historyStore = {
-      deposit: [
-        { title: "Пополнение через TON", date: "Сегодня, 17:30", amount: "+50.00 GRAM", pos: true },
-        { title: "Приветственный бонус", date: "Сегодня, 12:00", amount: "+50.00 GRAM", pos: true }
-      ],
-      withdraw: [
-        { title: "Вывод на кошелек", date: "Вчера, 20:15", amount: "-30.00 GRAM", pos: false }
-      ]
-    };
-
-    function renderHistoryFeed() {
-      const container = document.getElementById("historyFeedContainer");
-      const items = historyStore[currentHistoryType] || [];
-      if (items.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:13px;">Операций пока нет</div>`;
-        return;
-      }
-      container.innerHTML = items.map(item => `
-        <div class="feed-row">
-          <div>
-            <div style="font-weight:800;">${item.title}</div>
-            <div style="font-size:11px; color:var(--text-muted);">${item.date}</div>
-          </div>
-          <div class="feed-row-val ${item.pos ? 'pos' : 'neg'}">${item.amount}</div>
-        </div>
-      `).join("");
-    }
-
-    function setHistoryView(type) {
-      currentHistoryType = type;
-      document.getElementById("btnTabDep").classList.toggle("active", type === "deposit");
-      document.getElementById("btnTabWth").classList.toggle("active", type === "withdraw");
-      renderHistoryFeed();
-      if (tgApp?.HapticFeedback) tgApp.HapticFeedback.selectionChanged();
-    }
-
-    function submitPromoCode() {
-      const input = document.getElementById("promoCodeInput");
-      const code = input.value.trim().toUpperCase();
-      if (!code) {
-        alert("Введите промокод!");
-        return;
-      }
-      if (code === "CRAZY" || code === "GRAM" || code === "START100" || code === "PEPE") {
-        userBalance += 20.00;
-        refreshBalance();
-        historyStore.deposit.unshift({
-          title: `Промокод [${code}]`,
-          date: "Только что",
-          amount: "+20.00 GRAM",
-          pos: true
-        });
-        if (currentHistoryType === "deposit") renderHistoryFeed();
-        input.value = "";
-        alert("Промокод активирован: +20.00 GRAM!");
-        if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred("success");
-      } else {
-        alert("Неверный промокод");
-        if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred("error");
+    function actionDeposit() {
+      const v = prompt("Сумма пополнения (GRAM):", "50");
+      if (v && !isNaN(v) && parseFloat(v) > 0) {
+        userBalance += parseFloat(v);
+        updateBalanceUI();
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
       }
     }
 
-    function openDepositPrompt() {
-      const val = prompt("Введите сумму пополнения GRAM:", "50");
-      if (val && !isNaN(val) && parseFloat(val) > 0) {
-        const added = parseFloat(val);
-        userBalance += added;
-        refreshBalance();
-        historyStore.deposit.unshift({
-          title: "Пополнение баланса",
-          date: "Только что",
-          amount: `+${added.toFixed(2)} GRAM`,
-          pos: true
-        });
-        if (currentHistoryType === "deposit") renderHistoryFeed();
-        if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred("success");
-      }
-    }
-
-    function openWithdrawPrompt() {
-      const val = prompt("Введите сумму вывода GRAM:", "20");
-      if (val && !isNaN(val) && parseFloat(val) > 0) {
-        const wth = parseFloat(val);
-        if (wth > userBalance) {
-          alert("Недостаточно средств на балансе!");
+    function actionWithdraw() {
+      const v = prompt("Сумма вывода (GRAM):", "20");
+      if (v && !isNaN(v) && parseFloat(v) > 0) {
+        const amt = parseFloat(v);
+        if (amt > userBalance) {
+          alert("Недостаточно средств!");
           return;
         }
-        userBalance -= wth;
-        refreshBalance();
-        historyStore.withdraw.unshift({
-          title: "Вывод на кошелек",
-          date: "Только что",
-          amount: `-${wth.toFixed(2)} GRAM`,
-          pos: false
-        });
-        if (currentHistoryType === "withdraw") renderHistoryFeed();
-        if (tgApp?.HapticFeedback) tgApp.HapticFeedback.notificationOccurred("success");
+        userBalance -= amt;
+        updateBalanceUI();
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
       }
     }
 
-    /* ЗАПУСК ПРИЛОЖЕНИЯ */
-    initTelegramProfile();
-    refreshBalance();
-    renderHistoryFeed();
-    startWaitingLoop();
+    function applyPromo() {
+      const inp = document.getElementById("promoCode");
+      const c = inp.value.trim().toUpperCase();
+      if (c === "CRAZY" || c === "GRAM" || c === "GIFTOR") {
+        userBalance += 25.00;
+        updateBalanceUI();
+        inp.value = "";
+        alert("Промокод активирован: +25.00 GRAM!");
+      } else {
+        alert("Неверный промокод");
+      }
+    }
+
+    /* СТАРТ */
+    initUser();
+    updateBalanceUI();
+    runRoundCycle();
   </script>
 </body>
 </html>
